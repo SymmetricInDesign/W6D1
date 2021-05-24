@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+require 'launchy'
+
+user = nil
+while true
+    puts 'Enter your email: '
+    input = gets.chomp
+    user = User.find_by(email: input)
+    break if user
+    puts 'Invalid email. This email is not registered to a user.'
+end
+while true
+    puts "Enter 'quit' or 'q' to quit."
+    puts "Enter 'visit' or 'create' to visit an existing shortened url or to create a new one"
+    input = gets.chomp
+    if input.downcase == 'visit'
+        puts 'Enter your shortened url: '
+        short_url = gets.chomp
+        url = ShortenedUrl.find_by(short_url: short_url)
+        if !url 
+            puts 'short url not found in database.'
+            next
+        end
+        Visit.record_visit!(user, url)
+        puts 'Launching ' + url.long_url
+        Launchy.open(url.long_url)
+    elsif input.downcase == 'create'
+        puts 'Enter your url to shorten: '
+        long_url = gets.chomp
+        short_url = ShortenedUrl.create_url(user, long_url)
+        puts 'Your new short url is ' + short_url.short_url
+    elsif input.downcase == 'q' || input.downcase == 'quit'
+        puts "Goodbye!"
+        exit
+    else
+        puts 'invalid input!'
+        next
+    end
+    puts "Goodbye!"
+end
